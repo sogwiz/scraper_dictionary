@@ -19,5 +19,5 @@ To update mongodb / parse backend with various data-points
 
 Examples of running with docker
 # docker build -t sogwiz/assyrian_spider .
-# docker run -v $(pwd):/usr/src/app -it sogwiz/assyrian_spider scrapy cral assyrianlanguagesloggedin -a searchkey=1232 -o out3.json
+# docker run -v $(pwd):/usr/src/app -it sogwiz/assyrian_spider scrapy crawl assyrianlanguagesloggedin -a searchkey=1232,12,501 -o out3.json
 # docker run -v $(pwd):/usr/src/app -it sogwiz/assyrian_spider /bin/bash
