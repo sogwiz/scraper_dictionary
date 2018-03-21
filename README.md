@@ -7,6 +7,7 @@ Steps
 # source bin/activate
 # pip install Scrapy
 # pip install pymongo
+# pip install git+https://github.com/milesrichardson/ParsePy.git
 
 
 To download data from assyrianlanguages.org while logged in to the site
