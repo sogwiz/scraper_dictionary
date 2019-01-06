@@ -11,37 +11,20 @@ from parse_rest.connection import register
 from parse_rest.query import QueryResourceDoesNotExist
 from parse_rest.connection import ParseBatcher
 from parse_rest.core import ResourceRequestBadRequest, ParseError
+from utils import getCleanString, returnArray, ScrapeDict
 
 APPLICATION_ID = ''
 REST_API_KEY = ''
 MASTER_KEY = ''
 dir_east = ''
-
+file_scrape = ''
+boost_min = 3.45
 
 def printUsage():
-	print("Usage: uploader.py --id_ap <PARSE_APPLICATION_ID> --key_rest <PARSE_REST_API_KEY> --key_master <PARSE_MASTER_KEY> --dir_east </path/to/eastern/terms>")
+	print("Usage: uploader.py --id_app=<PARSE_APPLICATION_ID> --key_rest=<PARSE_REST_API_KEY> --key_master=<PARSE_MASTER_KEY> --dir_east=</path/to/eastern/terms> --file_scrape=</path/to/scraped/file.json>")
 
-def returnArray(originalString):
-	if isinstance (originalString,list):
-		return originalString
-	if originalString is None:
-		return None
-	if not originalString:
-		return None
-	arr = originalString.split(",")
-	return arr
-
-def getCleanString(originalString):
-    if originalString is None:
-        return None
-    if not originalString:
-        return None
-    if originalString == "(Undefined)":
-        return None
-    return originalString
-
-unixOptions = "i:r:m:d:h"
-gnuOptions = ["id_app=","key_rest=","key_master=","dir_east=","help"]
+unixOptions = "i:r:m:d:f:h"
+gnuOptions = ["id_app=","key_rest=","key_master=","dir_east=","file_scrape=","help"]
 try:
 	opts, args = getopt.getopt(sys.argv[1:], unixOptions, gnuOptions)
 except getopt.GetoptError:
@@ -58,11 +41,13 @@ for opt, arg in opts:
 		MASTER_KEY = arg
 	elif opt in ("-d", "--dir_east"):
 		dir_east = arg
+	elif opt in ("-f", "--file_scrape"):
+		file_scrape = arg
 	elif opt in ("-h", "--help"):
 		printUsage()
 		sys.exit(2)
 
-if APPLICATION_ID =='' or REST_API_KEY == '' or MASTER_KEY == '' or dir_east == '':
+if APPLICATION_ID =='' or REST_API_KEY == '' or MASTER_KEY == '' or dir_east == '' or file_scrape == '':
 	print(str(opts))
 	printUsage()
 	sys.exit(2)
@@ -71,6 +56,7 @@ print("\n====Using config====")
 print("APPLICATION_ID = " + APPLICATION_ID)
 print("REST_API_KEY = " + REST_API_KEY)
 print("MASTER_KEY = " + MASTER_KEY)
+print("file_scrape = " + file_scrape)
 print("dir_east = " + dir_east + "\n====Config End====\n")
 
 register(APPLICATION_ID, REST_API_KEY, master_key=MASTER_KEY)
@@ -81,8 +67,10 @@ class DictionaryDefinition(Object):
 class DictionaryWordDefinitionList(Object):
 	pass
 
-files = os.listdir(dir_east)
+scrapeDict = ScrapeDict()
+scrapeDict.load(file_scrape)
 
+files = os.listdir(dir_east)
 for file in files:
 	if file.endswith(".json"):
 		with open(dir_east+'/'+file) as data_file:
@@ -95,7 +83,16 @@ for file in files:
 				
 					print str(i.get("searchkey")) + " " + term + " " + str(index)
 					if int(i.get("searchkey")) >= 100000:
-						print("greater than 100000. Skipping term " + term)
+						#print("greater than 100000. Skipping term " + term)
+						continue
+					
+					boost = i.get('score')
+					if boost < boost_min:
+						print ("boost too low. Skipping " + str(i.get("searchkey")) + " " + term)
+						continue
+					
+					if len(term) <= 2 and boost < 10:
+						print ("length and boost too low. Skipping " + str(i.get("searchkey")) + " " + term)
 						continue
 
 					cfArr = returnArray(i.get("cf"))
@@ -108,6 +105,8 @@ for file in files:
 						if len(audio)>0:
 							audio = audio
 					
+					englishVal = scrapeDict.getEnglish(int(i.get("searchkey")))
+
 					dictionaryDefinition = DictionaryDefinition(
 						cf=cfArr,
 						seealso = seeAlsoArr,
@@ -125,10 +124,9 @@ for file in files:
 						searchkeynum = int(i.get("searchkey")),
 						searchkey = str(i.get("searchkey")),
 						searchkeystr = int(i.get("searchkey")),
-						definition_arr = returnArray(i.get("english_orig")),
-						english = (", ").join(i.get("english_orig")),
+						definition_arr = englishVal,
+						english = (", ").join(englishVal),
 						english_short = i.get("english_short")
-
                     )
 
 					#dictionaryDefinition = DictionaryDefinition(searchkey=i.get("searchkey"), searchkeynum=int(i.get("searchkey")), definition_arr = i.get("definition_arr"), east=i.get('east'), west=i.get('west'), west_western=i.get("west_western"), english=i.get("english"), english_short=i.get("english_short"), phonetic=i.get("phonetic"), phonetic_west=i.get("phonetic_west"), audio = audio, audio_west=i.get('audio_west'), cf=i.get('cf'), partofspeech = i["partofspeech"])
@@ -149,11 +147,10 @@ for file in files:
 					time.sleep(1.10)
 					try:
 						dictionary_word_definition_list.save()
-						print("hi " + str(i))
+						print("saved list " + str(i))
 					except Exception as inst:
 						print "May have found a dup DictionaryWordDefinitionList"
 
-					#sys.exit(0)
 			except ValueError:  # includes simplejson.decoder.JSONDecodeError
 				print file
 			except Exception as inst:
