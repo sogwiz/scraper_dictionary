@@ -1,9 +1,13 @@
+##
+# Checks if a searchkey exists in our DB. If it doesn't exist, then it adds a new Document to DictionaryDefinition
+# DOES NOT DO anything with search rankings
+# input: uses the output from the original scraper as input
+
 import os
 import json
 import sys
 import time
 import csv
-
 
 os.environ["PARSE_API_ROOT"] = "https://assyrian-433.nodechef.com/parse"
 
@@ -25,10 +29,9 @@ class DictionaryDefinition(Object):
 from pymongo import MongoClient
 
 client = MongoClient(
-    'mongodb://assyrian-433:PASSWORD@db-assyrian-433.nodechef.com:5414/assyrian?ssl=true')
+    'mongodb://assyrian-433:Sd4})9Hk@db-assyrian-433.nodechef.com:5414/assyrian?ssl=true')
 db = client['assyrian']
 collection = db['DictionaryDefinition']
-
 
 def returnArray(originalString):
     if originalString is None:
@@ -47,16 +50,19 @@ def getCleanString(originalString):
         return None
     return originalString
 
-with open('output.json') as data_file:
+with open('out3.json') as data_file:
     data = json.load(data_file)
     index = 0
     for i in data:
         index += 1
         searchkeynum = int(i.get("searchkeynum"))
+
         #print str(i.get("searchkeynum")) + " " + str(index)
         #print "\n" + str(i.get("searchkeynum"))
         try:
             documentSearched = collection.find_one({'searchkeynum': searchkeynum})
+            #if we don't have info for this search term
+            #then go ahead and add a new entry for it in our DB
             if documentSearched is None:
                 print ("DIDN'T FIND stuff for " + str(searchkeynum))
                 cfArr = returnArray(i.get("cf"))
@@ -84,6 +90,7 @@ with open('output.json') as data_file:
                     )
 
                 print document
+                time.sleep(1.2)
                 document.save()
                 #collection.insert_one(document)
                 #print "\nnew document is "

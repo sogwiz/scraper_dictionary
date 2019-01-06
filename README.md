@@ -23,3 +23,9 @@ Examples of running with docker
 # docker run -v $(pwd):/usr/src/app -it sogwiz/assyrian_spider scrapy crawl assyrianlanguagesloggedin -a searchkey=1232,12,501 -o out3.json
 # docker run -v $(pwd):/usr/src/app -it sogwiz/assyrian_spider scrapy crawl assyrianlanguagesloggedin -a searchkeys=39000-39050 -o out3.json
 # docker run -v $(pwd):/usr/src/app -it sogwiz/assyrian_spider /bin/bash
+
+1. Run the scraper to download a json file
+2. Run the java dictionary generator to generate the index and subsequent dictionary folder
+3. create DictionaryDefinition using updaternewentries.py by pointing to dictionary folder
+4. create DictionaryWordDefinitionList using uploader_newentries.py by pointing to dictionary folder
+//TODO: what we really need to do is to update the uploader.py to read the english and dictionaryArr fields from the original scraped file. Everything else loads from the indexed dictionary generated files. the reason english and dicationaryArr must be collated with the original scrape file is because the format of those fields in the original scrape file is much cleaner and i can't seem to clean the data. So, what we can do in the meantime is load the scraped file into memory and use the english and dictionaryArr fields from that structure
