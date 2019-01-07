@@ -85,15 +85,6 @@ for file in files:
 					if int(i.get("searchkey")) >= 100000:
 						#print("greater than 100000. Skipping term " + term)
 						continue
-					
-					boost = i.get('score')
-					if boost < boost_min:
-						print ("boost too low. Skipping " + str(i.get("searchkey")) + " " + term)
-						continue
-					
-					if len(term) <= 2 and boost < 10:
-						print ("length and boost too low. Skipping " + str(i.get("searchkey")) + " " + term)
-						continue
 
 					cfArr = returnArray(i.get("cf"))
 					seeAlsoArr = returnArray(i.get("seealso"))
@@ -142,6 +133,17 @@ for file in files:
 						print str(inst)
 						print(type(inst))
 						dictionaryDefinition = DictionaryDefinition.Query.get(searchkey=i["searchkey"])
+					
+					#we'll save the DictionaryDefinition object, but will NOT save the association in the DictionaryWordDefinitionList 
+					#if the boost is too low
+					boost = i.get('score')
+					if boost < boost_min:
+						print ("boost too low. Skipping " + str(i.get("searchkey")) + " " + term)
+						continue
+					
+					if len(term) <= 2 and boost < 10:
+						print ("length and boost too low. Skipping " + str(i.get("searchkey")) + " " + term)
+						continue
 
 					dictionary_word_definition_list = DictionaryWordDefinitionList(searchkey=i["searchkey"], searchkeynum=int(i["searchkey"]), word=term, dictionary_definition_obj = dictionaryDefinition, boost=i.get('score'))
 					time.sleep(1.10)
