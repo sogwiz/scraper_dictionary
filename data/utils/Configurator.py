@@ -9,7 +9,7 @@ class Configurator:
         self.processArgs(args,self.unixOptions,self.gnuOptions)
 
     def printUsage(self):
-        print("Usage: --db_conn_string=<mongodb://user:passwd@db-host.com:5414/assyrian?ssl=true>")
+        print("Usage: --db_conn_string=<mongodb://user:passwd@db-host.com:port/assyrian?ssl=true>")
 
     
     def processArgs(self,args,unixOptions,gnuOptions):
