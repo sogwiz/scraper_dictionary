@@ -22,6 +22,10 @@ class AssyrianLanguagesLoggedIn(scrapy.Spider):
     #       yield scrapy.Request(url=url, callback=self.parse)
 
     def start_requests(self):
+        """
+        Handles command-line arguments for specific or ranged scraping,
+        then performs a login before yielding further requests.
+        """
         search_key_param = getattr(self, 'searchkey', None)
         search_key_range_param = getattr(self, 'searchkeys', None)
         if search_key_param is not None:
@@ -35,12 +39,16 @@ class AssyrianLanguagesLoggedIn(scrapy.Spider):
             else:
                 self.search_key_list = None
 
+        # Initial login request with credentials from environment variables
         return [scrapy.FormRequest(url=self.start_urls[0], formdata={'user': os.getenv("ALUSER"), 'clearpassword': '', 'submitbtn': 'Login', 'password': os.getenv("ALPASS")},
                                    callback=self.startEditrequests)]
 
     def startEditrequests(self, response):
+        """
+        Called after a successful login. It yields a request for each
+        dictionary entry ID to be scraped.
+        """
         url_list = []
-        # for x in range(1,36051):
         if self.search_key_list is not None:
             for x in self.search_key_list:
                 urlStr = 'http://assyrianlanguages.org/sureth/editframe.php?entryid=' + str(x) + '&bookmark=0'
@@ -51,6 +59,9 @@ class AssyrianLanguagesLoggedIn(scrapy.Spider):
                 yield scrapy.Request(url=urlStr, callback=self.parseEditPage, meta={'key': x})
 
     def parseEditPage(self, response):
+        """
+        Parses the dictionary entry details from the edit page.
+        """
         print("\ntest after details\n")
         print(response.body)
         try:
@@ -80,7 +91,6 @@ class AssyrianLanguagesLoggedIn(scrapy.Spider):
                     "//input[@name='western_phonetic']/@value").extract_first()
             partofspeech = response.xpath(
                     "//input[@id='categoryText']/@value").extract_first()
-            # print "phonetic is " + phonetic[1]
         except Exception as e:
             print("found error at word " + str(response.meta['key']))
             print(e)
