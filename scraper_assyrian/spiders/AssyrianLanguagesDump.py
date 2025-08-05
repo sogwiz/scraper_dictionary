@@ -23,7 +23,7 @@ class AssyrianLanguagesDump(scrapy.Spider):
     		yield scrapy.Request(url=urlStr, callback=self.parse, meta={'key':x})
 
     def parse(self, response):
-    	print "\nafter details\n"
+    	#print "\nafter details\n"
     	try:
 			east = response.css('span.eastsyriac::text').extract_first()
 			west = response.css('span.westsyriac::text').extract_first()

@@ -51,8 +51,8 @@ class AssyrianLanguagesLoggedIn(scrapy.Spider):
                 yield scrapy.Request(url=urlStr, callback=self.parseEditPage, meta={'key': x})
 
     def parseEditPage(self, response):
-        print "\nafter details\n"
-        print response.body
+        print("\ntest after details\n")
+        print(response.body)
         try:
             cf = response.xpath(
                 "//textarea[@name='crossref']/text()").extract_first()
@@ -82,8 +82,8 @@ class AssyrianLanguagesLoggedIn(scrapy.Spider):
                     "//input[@id='categoryText']/@value").extract_first()
             # print "phonetic is " + phonetic[1]
         except Exception as e:
-            print "found error at word " + str(response.meta['key'])
-            print e
+            print("found error at word " + str(response.meta['key']))
+            print(e)
 
         yield {
             'searchkeynum': response.meta['key'],
